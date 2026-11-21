@@ -14,6 +14,7 @@ import argparse
 import base64
 import io
 import json
+import os
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -58,7 +59,9 @@ def main():
     ap.add_argument("--no-photo", action="store_true", help="latent only; the baseline becomes question text only")
     args = ap.parse_args()
 
-    client = OpenAI(api_key=Path("~/.config/openai_key").expanduser().read_text().strip(), max_retries=6)
+    key_file = Path("~/.config/openai_key").expanduser()
+    key = os.environ.get("OPENAI_API_KEY") or (key_file.read_text().strip() if key_file.exists() else None)
+    client = OpenAI(api_key=key, max_retries=6)
     items = load_sample(args.sample, args.limit)
     donors = wrong_latent_donors(items)
     price_in, price_out = PRICE_PER_M.get(args.model, (float("nan"), float("nan")))
